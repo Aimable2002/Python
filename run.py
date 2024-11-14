@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
+from Ajay import padded_vectors
 
 class PositionalEncoding(nn.Module):
     def __init__(self, d_model, max_sequence_length):
@@ -267,12 +268,16 @@ if __name__ == "__main__":
     d_model = 512
     ffn_hidden = 2048
     num_heads = 8
-    batch_size = 30
-    sequence_length = 100
+    # batch_size = 30
+    # sequence_length = 100
+    batch_size = padded_vectors.size(0)
+    sequence_length = padded_vectors.size(1)
     drop_prob = 0.1
     num_layers = 5
 
-
+    # Use padded_vectors from Ajay.py
+    print("\n=== Using Padded Vectors ===")
+    print(f"Padded Vectors shape: {padded_vectors.shape}")
 
     # Create test input
     x = torch.randn((batch_size, sequence_length, input_dim))
@@ -282,13 +287,15 @@ if __name__ == "__main__":
     # Test Positional Encoding
     print("\n=== Testing Positional Encoding ===")
     pos_enc = PositionalEncoding(d_model, max_sequence_length=100)
-    pos_output = pos_enc(x)
+    # pos_output = pos_enc(x)
+    pos_output = pos_enc(padded_vectors)
     print(f"Positional Encoding output shape: {pos_output.shape}")
     
     # Test Multi-head Attention
     print("\n=== Testing Multi-head Attention ===")
     mha = MultiheadAttention(input_dim, d_model, num_heads)
-    mha_output, attention = mha(x)
+    # mha_output, attention = mha(x)
+    mha_output, attention = mha(pos_output) 
     print(f"Multi-head Attention output shape: {mha_output.shape}")
     print(f"Attention shape: {attention.shape}")
     
@@ -308,13 +315,14 @@ if __name__ == "__main__":
     # Test Encoder Layer
     print("\n=== Testing Encoder Layer ===")
     encoder_layer = EncoderLayer(d_model, ffn_hidden, num_heads, drop_prob)
-    encoder_layer_output = encoder_layer(x)
+    # encoder_layer_output = encoder_layer(x)
+    encoder_layer_output = encoder_layer(pos_output) 
     print(f"Encoder Layer output shape: {encoder_layer_output.shape}")
     
     # Test Full Encoder
     print("\n=== Testing Full Encoder ===")
     encoder = Encoder(d_model, ffn_hidden, num_heads, drop_prob, num_layers)
-    encoder_output = encoder(x)
+    encoder_output = encoder(pos_output) # removed x
     print(f"Full Encoder output shape: {encoder_output.shape}")
     
     # Verify shapes are consistent
